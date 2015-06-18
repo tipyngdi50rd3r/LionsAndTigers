@@ -9,7 +9,7 @@
 import UIKit
 
 class ViewController: UIViewController {
-//properties
+///////////////////////properties////////////////////
     @IBOutlet weak var myImageView: UIImageView!
     @IBOutlet weak var nameLabel: UILabel!
     @IBOutlet weak var ageLabel: UILabel!
@@ -17,10 +17,14 @@ class ViewController: UIViewController {
     @IBOutlet weak var randomFactLabel: UILabel!
     
     var myTigers:[Tiger] = []
-    
+    var lions:[Lion] = []
     var currentIndex = 0  //first tiger instance in the array or myTiger
     
- //end properties
+    var currentAnimal = (species: "Tiger", index: 0) //currentAnimal is a tuple with two keys
+    
+    var lionCubs:[LionCub] = []
+    
+ //end properties////////////////////////////////////
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -81,21 +85,57 @@ class ViewController: UIViewController {
         secondTiger.chuffNumberOfTimes(2)
         //
         
-        //initialize an instance of class lion
-        var lion = Lion()
+        //initialize an instance of class lion///////////////
+        var lion = Lion()  //now have an instance of lion
         lion.age = 4
         lion.isAlphaMale = false
-        lion.image = UIImage(named: "lion.jpg")
+        lion.image = UIImage(named: "Lion.jpg")
         lion.name = "Mufasa"
         lion.subspecies = "West African"
+        ////////////////////////////////////////////////////
         
-        //create another instance of lion class
+        //create another instance of lion class//
         var lioness = Lion()
         lioness.age = 3
         lioness.isAlphaMale = false
-        lioness.image = UIImage(named: "lionness.jpg")
+        lioness.image = UIImage(named: "Lioness.jpeg")
         lioness.name = "Sarabi"
         lioness.subspecies = "Barbary"
+        /////////////////////////////////////////
+        
+        lion.roar()
+        lioness.roar()
+        
+        lion.changeToAlphaMale()
+        println(lion.isAlphaMale)
+        
+        //////Add Lion and Lionesses to the lion array/////////
+        self.lions += [lion, lioness]   ///we can use self because lions is a global property
+        ///////////////////////////////////////////////////////
+        
+        ////////create an instance of LionCub//////
+        var lionCub = LionCub()
+        lionCub.age = 1
+        lionCub.name = "Simba"
+        lionCub.image = UIImage(named: "LionCub1.jpg")
+        lionCub.subspecies = "Masai"
+        lionCub.roar()
+        lionCub.rubLionCubsBelly()
+        lionCub.isAlphaMale = true
+        
+        /////////end first instance of LionCub///////////
+        
+        ////////create a second instance of LionCub//////
+        var femaleLionCub = LionCub()
+        femaleLionCub.age = 1
+        femaleLionCub.name = "Nala"
+        femaleLionCub.image = UIImage(named: "LionCub2.jpeg")
+        femaleLionCub.subspecies = "Transvaal"
+        femaleLionCub.isAlphaMale = false
+        
+        self.lionCubs += [lionCub, femaleLionCub]
+        
+        /////////end code for second instance of LionCub//////
     }
 
     override func didReceiveMemoryWarning() {
@@ -103,37 +143,65 @@ class ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 
-    @IBAction func nextButtonPressed(sender: UIBarButtonItem) { //@IBAction indicates that this function will be called by a button in storybard 
-        var randomIndex:Int
-        do {
-        //generate random number for index
-        randomIndex = Int(arc4random_uniform(UInt32(myTigers.count)))
-     
-        } while self.currentIndex == randomIndex  //boolean
-
-        self.currentIndex = randomIndex //when different go ahead and update currentIndex to new random number
-        //this value or property is saved or persisted because it's declared within the viewcontroller. A new viewcontroller would then have a new property to reference
-        
-           let tiger = myTigers[randomIndex] //create a tiger array that stores an object randomly selected from the list of instances
-
-//        myImageView.image = tiger.image //display the details of that instance
-//        nameLabel.text = tiger.name
-//        ageLabel.text = "\(tiger.age)" //needs string interpolation
-//        breedLabel.text = tiger.breed
-        
-        /*beware of advanced code...self is the current instance of the view thats on the screen */
-        UIView.transitionWithView(self.view, duration: 2, options: UIViewAnimationOptions.TransitionCrossDissolve, animations: {
-            self.myImageView.image = tiger.image
-            self.nameLabel.text = tiger.name
-            self.ageLabel.text = "\(tiger.age)"
-            self.breedLabel.text = tiger.breed
-            self.randomFactLabel.text = tiger.randomFact()
-            
-            }, completion: {
-            (finished: Bool) -> () in //happens after completion of transition
-        })
+    @IBAction func nextButtonPressed(sender: UIBarButtonItem) {
+        //@IBAction indicates that this function will be called by a button in storybard
+        updateAnimal()
+        updateView() 
+           }
+    //create a helper function that flips between lion or tiger depending what is currently displayed//
+    func updateAnimal () {
+        switch currentAnimal{
+        case ("Tiger", _):
+            let randomIndex = Int(arc4random_uniform(UInt32(lions.count)))
+            currentAnimal = ("Lion", randomIndex) //if a Tiger than this line updates and changes the key in the tuple to a Lion
+        case("Lion", _):
+            let randomIndex = Int(arc4random_uniform(UInt32(lionCubs.count)))
+            currentAnimal = ("LionCub", randomIndex)
+        default:
+            let randomIndex = Int(arc4random_uniform(UInt32(myTigers.count)))
+            currentAnimal = ("Tiger", randomIndex)
+        }
+    ///////////////////////////
     }
+    //function to update UI which is another helper function///
     
+    func updateView (){
+
+        UIView.transitionWithView(self.view, duration: 2, options: UIViewAnimationOptions.TransitionCrossDissolve, animations: {
+            if self.currentAnimal.species == "Tiger" {
+                let tiger = self.myTigers[self.currentAnimal.index]
+                self.myImageView.image = tiger.image
+                self.breedLabel.text = tiger.breed
+                self.ageLabel.text = "\(tiger.age)"
+                self.nameLabel.text = tiger.name
+                self.randomFactLabel.text = tiger.randomFact()
+            }
+            else if self.currentAnimal.species == "Lion"{
+                
+                let lion = self.lions[self.currentAnimal.index]
+                self.myImageView.image = lion.image
+                self.breedLabel.text = lion.subspecies
+                self.ageLabel.text = "\(lion.age)"
+                self.nameLabel.text = lion.name
+                self.randomFactLabel.text = lion.randomFact()
+                
+                
+            }
+            else if self.currentAnimal.species == "LionCub" {  //check the species element in the currentAnimal tuple///
+                let lionCub = self.lionCubs[self.currentAnimal.index]
+                self.myImageView.image = lionCub.image
+                self.breedLabel.text = lionCub.subspecies
+                self.ageLabel.text = "\(lionCub.age)"
+                self.nameLabel.text = lionCub.name
+                self.randomFactLabel.text = lionCub.randomFact()
+            }
+            self.randomFactLabel.hidden = false
+
+            }, completion: {
+                (finished: Bool) -> () in //happens after completion of transition
+        })
+
+    }
 
     }
 
